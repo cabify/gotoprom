@@ -2,3 +2,10 @@ language: go
 
 go:
   - "1.11"
+
+install:
+  - dep ensure
+
+script:
+  - make test
+  - make check-fmt
