@@ -178,6 +178,10 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 
 			value := args[0].FieldByIndex(index)
 
+			if label.hasEmptyValue && isEmpty[label.typ](value) {
+				value = label.emptyValue
+			}
+
 			if label.typ == reflect.Bool {
 				labels[label.name] = strconv.FormatBool(value.Bool())
 			} else if label.typ == reflect.String {
@@ -196,8 +200,16 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 }
 
 type label struct {
-	typ  reflect.Kind
-	name string
+	typ           reflect.Kind
+	name          string
+	hasEmptyValue bool
+	emptyValue    reflect.Value
+}
+
+var isEmpty = map[reflect.Kind]func(value reflect.Value) bool{
+	reflect.String: func(value reflect.Value) bool {
+		return value.Len() == 0
+	},
 }
 
 func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int) error {
@@ -225,6 +237,15 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 			label := label{
 				typ:  f.Type.Kind(),
 				name: labelTag,
+			}
+
+			if emptyTag, ok := f.Tag.Lookup("empty"); ok {
+				if _, supported := isEmpty[f.Type.Kind()]; !supported {
+					return fmt.Errorf("type %v of field %q doesn't support empty values yet", f.Type.Kind(), labelTag)
+				}
+
+				label.hasEmptyValue = true
+				label.emptyValue = reflect.ValueOf(emptyTag)
 			}
 
 			if _, ok := indexes[label]; ok {
