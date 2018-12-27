@@ -16,4 +16,6 @@ fmt: ## Format files
 	@goimports -w $$(find . -name "*.go" -not -path "./vendor/*")
 
 install: ## Installs dependencies
+	GOPATH=$$GOPATH && go get -u -v \
+		github.com/golang/dep/cmd/dep
 	@dep ensure
