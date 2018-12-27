@@ -178,17 +178,17 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 
 			value := args[0].FieldByIndex(index)
 
-			if label.hasEmptyValue && isEmpty[label.typ](value) {
+			if label.hasEmptyValue && isEmpty[label.kind](value) {
 				value = label.emptyValue
 			}
 
-			if label.typ == reflect.Bool {
+			if label.kind == reflect.Bool {
 				labels[label.name] = strconv.FormatBool(value.Bool())
-			} else if label.typ == reflect.String {
+			} else if label.kind == reflect.String {
 				labels[label.name] = value.String()
 			} else {
 				// Should not happen
-				panic(fmt.Errorf("field %s has unsupported type %v", label.name, label.typ))
+				panic(fmt.Errorf("field %s has unsupported kind %v", label.name, label.kind))
 			}
 
 		}
@@ -200,7 +200,7 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 }
 
 type label struct {
-	typ           reflect.Kind
+	kind          reflect.Kind
 	name          string
 	hasEmptyValue bool
 	emptyValue    reflect.Value
@@ -235,7 +235,7 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 			}
 
 			label := label{
-				typ:  f.Type.Kind(),
+				kind: f.Type.Kind(),
 				name: labelTag,
 			}
 
