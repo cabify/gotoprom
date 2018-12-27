@@ -137,24 +137,24 @@ func Test_LabelsWithBooleans(t *testing.T) {
 	}, reportedLabels)
 }
 
-func Test_EmptyLabelValues(t *testing.T) {
+func Test_DefaultLabelValues(t *testing.T) {
 	type labelsWithEmptyValues struct {
-		StringWithEmpty    string `label:"string_with_empty" empty:"none"`
-		StringWithoutEmpty string `label:"string_without_empty"`
+		StringWithEmpty    string `label:"string_with_default" default:"none"`
+		StringWithoutEmpty string `label:"string_without_default"`
 	}
 
 	var metrics struct {
-		WithLabels func(labelsWithEmptyValues) prometheus.Observer `name:"with_labels" help:"Assign empty values"`
+		WithLabels func(labelsWithEmptyValues) prometheus.Observer `name:"with_labels" help:"Assign default values"`
 	}
-	gotoprom.MustInit(&metrics, "testempty")
+	gotoprom.MustInit(&metrics, "testdefault")
 
 	metrics.WithLabels(labelsWithEmptyValues{}).Observe(288.0)
 
-	reportedLabels := retrieveReportedLabels(t, "testempty_with_labels")
+	reportedLabels := retrieveReportedLabels(t, "testdefault_with_labels")
 
 	assert.Equal(t, map[string]string{
-		"string_with_empty":    "none",
-		"string_without_empty": "",
+		"string_with_default":    "none",
+		"string_without_default": "",
 	}, reportedLabels)
 }
 

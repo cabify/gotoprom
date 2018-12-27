@@ -178,8 +178,8 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 
 			value := args[0].FieldByIndex(index)
 
-			if label.hasEmptyValue && value.Interface() == label.zeroTypeValueInterface {
-				value = label.emptyValue
+			if label.hasDefaultValue && value.Interface() == label.zeroTypeValueInterface {
+				value = label.defaultValue
 			}
 
 			if label.kind == reflect.Bool {
@@ -203,12 +203,12 @@ type label struct {
 	kind reflect.Kind
 	name string
 
-	// hasEmptyValue indicates that zero values should be replaced by empty values
-	hasEmptyValue bool
+	// hasDefaultValue indicates that zero values should be replaced by default values
+	hasDefaultValue bool
 	// zeroTypeValueInterface is the interface value of the zero-value for this field's type
 	zeroTypeValueInterface interface{}
-	// emptyValue is the value to be assigned if hasEmptyValue is true and provided value is the zeroTypeValue
-	emptyValue reflect.Value
+	// defaultValue is the value to be assigned if hasDefaultValue is true and provided value is the zeroTypeValue
+	defaultValue reflect.Value
 }
 
 func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int) error {
@@ -238,9 +238,9 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 				name: labelTag,
 			}
 
-			if emptyTag, ok := f.Tag.Lookup("empty"); ok {
-				label.hasEmptyValue = true
-				label.emptyValue = reflect.ValueOf(emptyTag)
+			if emptyTag, ok := f.Tag.Lookup("default"); ok {
+				label.hasDefaultValue = true
+				label.defaultValue = reflect.ValueOf(emptyTag)
 				label.zeroTypeValueInterface = reflect.Zero(f.Type).Interface()
 			}
 
