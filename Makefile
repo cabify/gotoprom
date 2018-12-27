@@ -17,5 +17,6 @@ fmt: ## Format files
 
 install: ## Installs dependencies
 	GOPATH=$$GOPATH && go get -u -v \
-		github.com/golang/dep/cmd/dep
+		github.com/golang/dep/cmd/dep \
+		golang.org/x/tools/cmd/goimports
 	@dep ensure
