@@ -178,7 +178,7 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 
 			value := args[0].FieldByIndex(index)
 
-			if label.hasEmptyValue && isEmpty[label.kind](value) {
+			if label.hasEmptyValue && value.Interface() == label.zeroTypeValueInterface {
 				value = label.emptyValue
 			}
 
@@ -200,16 +200,15 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 }
 
 type label struct {
-	kind          reflect.Kind
-	name          string
-	hasEmptyValue bool
-	emptyValue    reflect.Value
-}
+	kind reflect.Kind
+	name string
 
-var isEmpty = map[reflect.Kind]func(value reflect.Value) bool{
-	reflect.String: func(value reflect.Value) bool {
-		return value.Len() == 0
-	},
+	// hasEmptyValue indicates that zero values should be replaced by empty values
+	hasEmptyValue bool
+	// zeroTypeValueInterface is the interface value of the zero-value for this field's type
+	zeroTypeValueInterface interface{}
+	// emptyValue is the value to be assigned if hasEmptyValue is true and provided value is the zeroTypeValue
+	emptyValue reflect.Value
 }
 
 func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int) error {
@@ -240,12 +239,9 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 			}
 
 			if emptyTag, ok := f.Tag.Lookup("empty"); ok {
-				if _, supported := isEmpty[f.Type.Kind()]; !supported {
-					return fmt.Errorf("type %v of field %q doesn't support empty values yet", f.Type.Kind(), labelTag)
-				}
-
 				label.hasEmptyValue = true
 				label.emptyValue = reflect.ValueOf(emptyTag)
+				label.zeroTypeValueInterface = reflect.Zero(f.Type).Interface()
 			}
 
 			if _, ok := indexes[label]; ok {
