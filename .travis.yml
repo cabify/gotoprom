@@ -4,7 +4,7 @@ go:
   - "1.11"
 
 install:
-  - dep ensure
+  - make install
 
 script:
   - make test
