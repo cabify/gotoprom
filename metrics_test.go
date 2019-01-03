@@ -104,19 +104,7 @@ func Test_EmbeddedLabels(t *testing.T) {
 		SpecificValue: "specific",
 	}).Add(42.0)
 
-	mfs, err := prometheus.DefaultGatherer.Gather()
-	assert.Nil(t, err)
-
-	reportedLabels := map[string]string{}
-	for _, m := range mfs {
-		if *m.Name == "namespace_with_labels" {
-			for _, mm := range m.Metric {
-				for _, l := range mm.Label {
-					reportedLabels[*l.Name] = *l.Value
-				}
-			}
-		}
-	}
+	reportedLabels := retrieveReportedLabels(t, "namespace_with_labels")
 
 	assert.Equal(t, map[string]string{
 		"common_value":   "common",
@@ -141,23 +129,32 @@ func Test_LabelsWithBooleans(t *testing.T) {
 		BooleanValue: false,
 	}).Observe(288.0)
 
-	mfs, err := prometheus.DefaultGatherer.Gather()
-	assert.Nil(t, err)
-
-	reportedLabels := map[string]string{}
-	for _, m := range mfs {
-		if *m.Name == "testbooleans_with_booleans" {
-			for _, mm := range m.Metric {
-				for _, l := range mm.Label {
-					reportedLabels[*l.Name] = *l.Value
-				}
-			}
-		}
-	}
+	reportedLabels := retrieveReportedLabels(t, "testbooleans_with_booleans")
 
 	assert.Equal(t, map[string]string{
 		"string_value": "string",
 		"bool_value":   "false",
+	}, reportedLabels)
+}
+
+func Test_DefaultLabelValues(t *testing.T) {
+	type labelsWithEmptyValues struct {
+		StringWithEmpty    string `label:"string_with_default" default:"none"`
+		StringWithoutEmpty string `label:"string_without_default"`
+	}
+
+	var metrics struct {
+		WithLabels func(labelsWithEmptyValues) prometheus.Observer `name:"with_labels" help:"Assign default values"`
+	}
+	gotoprom.MustInit(&metrics, "testdefault")
+
+	metrics.WithLabels(labelsWithEmptyValues{}).Observe(288.0)
+
+	reportedLabels := retrieveReportedLabels(t, "testdefault_with_labels")
+
+	assert.Equal(t, map[string]string{
+		"string_with_default":    "none",
+		"string_without_default": "",
 	}, reportedLabels)
 }
 
@@ -181,4 +178,22 @@ func Test_HistogramWithUnsupportedBuckets(t *testing.T) {
 	}
 	err := gotoprom.Init(&metrics, "test")
 	assert.NotNil(t, err)
+}
+
+func retrieveReportedLabels(t *testing.T, metric string) map[string]string {
+	mfs, err := prometheus.DefaultGatherer.Gather()
+	assert.Nil(t, err)
+
+	reportedLabels := map[string]string{}
+	for _, m := range mfs {
+		if *m.Name == metric {
+			for _, mm := range m.Metric {
+				for _, l := range mm.Label {
+					reportedLabels[*l.Name] = *l.Value
+				}
+			}
+		}
+	}
+
+	return reportedLabels
 }

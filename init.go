@@ -178,13 +178,17 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 
 			value := args[0].FieldByIndex(index)
 
-			if label.typ == reflect.Bool {
+			if label.hasDefaultValue && value.Interface() == label.zeroTypeValueInterface {
+				value = label.defaultValue
+			}
+
+			if label.kind == reflect.Bool {
 				labels[label.name] = strconv.FormatBool(value.Bool())
-			} else if label.typ == reflect.String {
+			} else if label.kind == reflect.String {
 				labels[label.name] = value.String()
 			} else {
 				// Should not happen
-				panic(fmt.Errorf("field %s has unsupported type %v", label.name, label.typ))
+				panic(fmt.Errorf("field %s has unsupported kind %v", label.name, label.kind))
 			}
 
 		}
@@ -196,8 +200,15 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 }
 
 type label struct {
-	typ  reflect.Kind
+	kind reflect.Kind
 	name string
+
+	// hasDefaultValue indicates that zero values should be replaced by default values
+	hasDefaultValue bool
+	// zeroTypeValueInterface is the interface value of the zero-value for this field's type
+	zeroTypeValueInterface interface{}
+	// defaultValue is the value to be assigned if hasDefaultValue is true and provided value is the zeroTypeValue
+	defaultValue reflect.Value
 }
 
 func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int) error {
@@ -223,8 +234,14 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 			}
 
 			label := label{
-				typ:  f.Type.Kind(),
+				kind: f.Type.Kind(),
 				name: labelTag,
+			}
+
+			if emptyTag, ok := f.Tag.Lookup("default"); ok {
+				label.hasDefaultValue = true
+				label.defaultValue = reflect.ValueOf(emptyTag)
+				label.zeroTypeValueInterface = reflect.Zero(f.Type).Interface()
 			}
 
 			if _, ok := indexes[label]; ok {
