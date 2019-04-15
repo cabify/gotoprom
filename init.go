@@ -182,15 +182,17 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 				value = label.defaultValue
 			}
 
-			if label.kind == reflect.Bool {
+			switch k := label.kind; k {
+			case reflect.Bool:
 				labels[label.name] = strconv.FormatBool(value.Bool())
-			} else if label.kind == reflect.String {
+			case reflect.String:
 				labels[label.name] = value.String()
-			} else {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				labels[label.name] = strconv.FormatInt(value.Int(), 10)
+			default:
 				// Should not happen
 				panic(fmt.Errorf("field %s has unsupported kind %v", label.name, label.kind))
 			}
-
 		}
 		return []reflect.Value{reflect.ValueOf(metric(labels)).Convert(returnArg)}
 	}
@@ -228,7 +230,7 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 			}
 
 			switch k := f.Type.Kind(); k {
-			case reflect.String, reflect.Bool:
+			case reflect.String, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			default:
 				return fmt.Errorf("field %s has unsupported type %v", labelTag, k)
 			}
