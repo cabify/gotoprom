@@ -137,6 +137,43 @@ func Test_LabelsWithBooleans(t *testing.T) {
 	}, reportedLabels)
 }
 
+func Test_LabelsWithInts(t *testing.T) {
+	type labelsWithInts struct {
+		StringValue string `label:"string_value"`
+		IntValue    int    `label:"int_value"`
+		IntValue8   int8   `label:"int8_value"`
+		IntValue16  int16  `label:"int16_value"`
+		IntValue32  int32  `label:"int32_value"`
+		IntValue64  int64  `label:"int64_value"`
+	}
+
+	var metrics struct {
+		WithLabels func(labelsWithInts) prometheus.Observer `name:"with_ints" help:"Parse ints as strings"`
+	}
+
+	gotoprom.MustInit(&metrics, "testints")
+
+	metrics.WithLabels(labelsWithInts{
+		StringValue: "string",
+		IntValue:    10,
+		IntValue8:   20,
+		IntValue16:  30,
+		IntValue32:  40,
+		IntValue64:  50,
+	}).Observe(288.0)
+
+	reportedLabels := retrieveReportedLabels(t, "testints_with_ints")
+
+	assert.Equal(t, map[string]string{
+		"string_value": "string",
+		"int_value":    "10",
+		"int8_value":   "20",
+		"int16_value":  "30",
+		"int32_value":  "40",
+		"int64_value":  "50",
+	}, reportedLabels)
+}
+
 func Test_DefaultLabelValues(t *testing.T) {
 	type labelsWithEmptyValues struct {
 		StringWithEmpty    string `label:"string_with_default" default:"none"`
