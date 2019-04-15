@@ -197,12 +197,12 @@ func Test_DefaultLabelValues(t *testing.T) {
 
 func Test_LabelsWithUnsupportedFields(t *testing.T) {
 	type labelsWithUnsupportedFields struct {
-		StringValue string `label:"string_value"`
-		IntValue    int    `label:"int_value"`
+		StringValue string  `label:"string_value"`
+		FloatValue  float64 `label:"float_value"`
 	}
 
 	var metrics struct {
-		WithLabels func(labelsWithUnsupportedFields) prometheus.Counter `name:"with_unsupported_fields" help:"Can't parse integer labels"`
+		WithLabels func(labelsWithUnsupportedFields) prometheus.Counter `name:"with_unsupported_fields" help:"Can't parse float labels"`
 	}
 
 	err := gotoprom.Init(&metrics, "test")
