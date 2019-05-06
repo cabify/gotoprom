@@ -28,6 +28,7 @@ func BenchmarkVanilla(b *testing.B) {
 
 	prometheus.MustRegister(cvec)
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		cvec.With(map[string]string{
 			"region": "madrid",
@@ -48,6 +49,7 @@ func BenchmarkGotoprom(b *testing.B) {
 	initializer.MustAddBuilder(prometheusvanilla.CounterType, prometheusvanilla.BuildCounter)
 	initializer.MustInit(&metrics, "benchmarks")
 
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		metrics.DoAdd(labels{Region: "madrid"}).Add(1)
 	}
