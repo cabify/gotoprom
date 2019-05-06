@@ -1,8 +1,6 @@
 package gotoprom_test
 
 import (
-	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/cabify/gotoprom"
@@ -19,7 +17,7 @@ func (DummyRegistry) Register(prometheus.Collector) error                   { re
 func (DummyRegistry) MustRegister(...prometheus.Collector)                  {}
 func (DummyRegistry) Unregister(prometheus.Collector) bool                  { return true }
 
-func BenchmarkDefaultLib(b *testing.B) {
+func BenchmarkVanilla(b *testing.B) {
 	prometheus.DefaultRegisterer = DummyRegistry{}
 
 	cvec := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -37,7 +35,7 @@ func BenchmarkDefaultLib(b *testing.B) {
 	}
 }
 
-func BenchmarkMagicLib(b *testing.B) {
+func BenchmarkGotoprom(b *testing.B) {
 	prometheus.DefaultRegisterer = DummyRegistry{}
 
 	type labels struct {
@@ -52,12 +50,5 @@ func BenchmarkMagicLib(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		metrics.DoAdd(labels{Region: "madrid"}).Add(1)
-	}
-}
-
-func BenchmarkSprintf(b *testing.B) {
-	err := errors.New("everything is broken")
-	for n := 0; n < b.N; n++ {
-		_ = fmt.Errorf("something failed: %s", err)
 	}
 }
