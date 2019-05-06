@@ -1,6 +1,8 @@
 package gotoprom_test
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/cabify/gotoprom"
@@ -50,5 +52,12 @@ func BenchmarkMagicLib(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		metrics.DoAdd(labels{Region: "madrid"}).Add(1)
+	}
+}
+
+func BenchmarkSprintf(b *testing.B) {
+	err := errors.New("everything is broken")
+	for n := 0; n < b.N; n++ {
+		_ = fmt.Errorf("something failed: %s", err)
 	}
 }
