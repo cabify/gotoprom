@@ -60,10 +60,10 @@ $ go test -bench . -benchtime 3s
 goos: darwin
 goarch: amd64
 pkg: github.com/cabify/gotoprom
-BenchmarkVanilla-4    	10000000	       386 ns/op
-BenchmarkGotoprom-4   	 5000000	      1055 ns/op
+BenchmarkVanilla-4    	10000000	       387 ns/op
+BenchmarkGotoprom-4   	 5000000	      1049 ns/op
 PASS
-ok  	github.com/cabify/gotoprom	10.617s
+ok  	github.com/cabify/gotoprom	10.611s
 ```
 
 In terms of memory, there's a also a 33% increase in terms of space, and 3x increase in allocations:
@@ -73,10 +73,10 @@ $ go test -bench . -benchmem
 goos: darwin
 goarch: amd64
 pkg: github.com/cabify/gotoprom
-BenchmarkVanilla-4    	 5000000	       389 ns/op	     336 B/op	       2 allocs/op
-BenchmarkGotoprom-4   	 1000000	      1046 ns/op	     432 B/op	       6 allocs/op
+BenchmarkVanilla-4    	 5000000	       381 ns/op	     336 B/op	       2 allocs/op
+BenchmarkGotoprom-4   	 1000000	      1030 ns/op	     432 B/op	       6 allocs/op
 PASS
-ok  	github.com/cabify/gotoprom	3.436s
+ok  	github.com/cabify/gotoprom	3.369s
 ```
 
 This costs are probably assumable in most of the applications, specially when measuring

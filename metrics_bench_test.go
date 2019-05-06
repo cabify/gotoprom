@@ -7,18 +7,10 @@ import (
 
 	"github.com/cabify/gotoprom/prometheusvanilla"
 	"github.com/prometheus/client_golang/prometheus"
-	io_prometheus_client "github.com/prometheus/client_model/go"
 )
 
-type DummyRegistry struct{}
-
-func (DummyRegistry) Gather() ([]*io_prometheus_client.MetricFamily, error) { return nil, nil }
-func (DummyRegistry) Register(prometheus.Collector) error                   { return nil }
-func (DummyRegistry) MustRegister(...prometheus.Collector)                  {}
-func (DummyRegistry) Unregister(prometheus.Collector) bool                  { return true }
-
 func BenchmarkVanilla(b *testing.B) {
-	prometheus.DefaultRegisterer = DummyRegistry{}
+	prometheus.DefaultRegisterer = prometheus.NewRegistry()
 
 	cvec := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "benchmarks",
@@ -37,15 +29,13 @@ func BenchmarkVanilla(b *testing.B) {
 }
 
 func BenchmarkGotoprom(b *testing.B) {
-	prometheus.DefaultRegisterer = DummyRegistry{}
-
 	type labels struct {
 		Region string `label:"region"`
 	}
 	var metrics struct {
 		DoAdd func(labels) prometheus.Counter `name:"do_add2" help:"does an add"`
 	}
-	initializer := gotoprom.NewInitializer(DummyRegistry{})
+	initializer := gotoprom.NewInitializer(prometheus.NewRegistry())
 	initializer.MustAddBuilder(prometheusvanilla.CounterType, prometheusvanilla.BuildCounter)
 	initializer.MustInit(&metrics, "benchmarks")
 
