@@ -2,7 +2,7 @@
 ## A Prometheus metrics builder
 
 [![Travis CI build status](https://travis-ci.com/cabify/gotoprom.svg?branch=master)](https://travis-ci.com/cabify/gotoprom)
-[![Coverage status](https://coveralls.io/repos/github/cabify/gotoprom/badge.svg)](https://coveralls.io/github/cabify/gotoprom)
+[![Coverage Status](https://coveralls.io/repos/github/cabify/gotoprom/badge.svg)](https://coveralls.io/github/cabify/gotoprom)
 [![Godoc reference](https://camo.githubusercontent.com/3dee8c5a6dfd3437210ba7233e243c1d6131ad87/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f6361626966792f676f2d6c6f6767696e673f7374617475732e706e67)](https://godoc.org/github.com/cabify/gotoprom)
 
 `gotoprom` offers an easy to use declarative API with type-safe labels for building and using Prometheus metrics.
