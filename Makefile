@@ -4,7 +4,7 @@ help: ## Show the help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[36m%-20s\033[93m %s\n", $$1, $$2}'
 
 test: ## Run unit tests
-	@go test -race ./...
+	@go test -coverprofile=coverage.out -covermode=atomic -race ./...
 
 benchmark: ## Run benchmarks
 	@go test -bench=. ./...
@@ -20,3 +20,6 @@ fmt: ## Format files
 install: ## Installs dependencies
 	GOPATH=$$GOPATH && go get -u -v \
 		golang.org/x/tools/cmd/goimports
+
+report-coveralls: ## Reports generated coverage profile to coveralls.io. Intended to be used only from travis
+	go get github.com/mattn/goveralls && goveralls -coverprofile=coverage.out -service=travis-ci

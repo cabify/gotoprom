@@ -13,3 +13,6 @@ install:
 script:
   - make test
   - make check-fmt
+
+after_success:
+  - make report-coveralls
