@@ -195,26 +195,84 @@ func Test_DefaultLabelValues(t *testing.T) {
 	}, reportedLabels)
 }
 
-func Test_LabelsWithUnsupportedFields(t *testing.T) {
-	type labelsWithUnsupportedFields struct {
-		StringValue string  `label:"string_value"`
-		FloatValue  float64 `label:"float_value"`
-	}
-
-	var metrics struct {
-		WithLabels func(labelsWithUnsupportedFields) prometheus.Counter `name:"with_unsupported_fields" help:"Can't parse float labels"`
-	}
-
-	err := gotoprom.Init(&metrics, "test")
-	assert.NotNil(t, err)
-}
-
 func Test_HistogramWithUnsupportedBuckets(t *testing.T) {
 	var metrics struct {
 		Histogram func() prometheus.Observer `name:"with_broken_buckets" help:"Wrong buckets" buckets:"0.005, +inf"`
 	}
 	err := gotoprom.Init(&metrics, "test")
 	assert.NotNil(t, err)
+}
+
+func Test_WrongLabels(t *testing.T) {
+	t.Run("unsupported fields", func(t *testing.T) {
+		type labelsWithUnsupportedFields struct {
+			StringValue string  `label:"string_value"`
+			FloatValue  float64 `label:"float_value"`
+		}
+
+		var metrics struct {
+			WithLabels func(labelsWithUnsupportedFields) prometheus.Counter `name:"with_unsupported_fields" help:"Can't parse float labels"`
+		}
+
+		err := gotoprom.Init(&metrics, "test")
+		assert.NotNil(t, err)
+	})
+
+	t.Run("no label tag", func(t *testing.T) {
+		type labelsWithUnsupportedFields struct {
+			StringValue      string `label:"string_value"`
+			StringWithoutTag string
+		}
+
+		var metrics struct {
+			WithLabels func(labelsWithUnsupportedFields) prometheus.Counter `name:"with_unsupported_fields" help:"Tag is missing"`
+		}
+
+		err := gotoprom.Init(&metrics, "test")
+		assert.NotNil(t, err)
+	})
+
+	t.Run("same label registered twice", func(t *testing.T) {
+		type labelsWithUnsupportedFields struct {
+			StringValue     string `label:"string_value"`
+			SameStringValue string `label:"string_value"`
+		}
+
+		var metrics struct {
+			WithLabels func(labelsWithUnsupportedFields) prometheus.Counter `name:"with_unsupported_fields" help:"Same string value"`
+		}
+
+		err := gotoprom.Init(&metrics, "test")
+		assert.NotNil(t, err)
+	})
+
+	t.Run("embedded struct is wrong", func(t *testing.T) {
+		type embeddedStructLabels struct {
+			SameStringValue string `label:"string_value"`
+		}
+		type labelsWithUnsupportedFields struct {
+			StringValue string `label:"string_value"`
+			embeddedStructLabels
+		}
+
+		var metrics struct {
+			WithLabels func(labelsWithUnsupportedFields) prometheus.Counter `name:"with_unsupported_fields" help:"Same string value in the embedded struct"`
+		}
+
+		err := gotoprom.Init(&metrics, "test")
+		assert.NotNil(t, err)
+	})
+
+	t.Run("labels are not a struct", func(t *testing.T) {
+		type labels string
+
+		var metrics struct {
+			WithLabels func(labels) prometheus.Counter `name:"with_unsupported_fields" help:"Labels are not a struct"`
+		}
+
+		err := gotoprom.Init(&metrics, "test")
+		assert.NotNil(t, err)
+	})
 }
 
 func retrieveReportedLabels(t *testing.T, metric string) map[string]string {
