@@ -21,7 +21,7 @@ var metrics struct {
 	SomeGauge                       func() prometheus.Gauge    `name:"some_gauge" help:"Some gauge"`
 
 	Requests struct {
-		Total func(requestLabels) prometheus.Gauge `name:"total" help:"Total amount of timers delayed right now"`
+		Total func(requestLabels) prometheus.Count `name:"total" help:"Total amount of requests served"`
 	} `namespace:"requests"`
 }
 
@@ -44,7 +44,7 @@ Measure stuff:
 
 ```go
 metrics.SomeGauge().Set(100)
-metrics.Requests.Total(requestLabels{Service: "google", StatusCode: 404, Success: false})
+metrics.Requests.Total(requestLabels{Service: "google", StatusCode: 404, Success: false}).Inc()
 ```
 
 ## Custom metric types
