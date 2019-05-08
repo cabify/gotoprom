@@ -9,8 +9,10 @@ test: ## Run unit tests
 benchmark: ## Run benchmarks
 	@go test -bench=. ./...
 
-check-fmt: ## Check file format
-	@goimports -l $$(find . -name "*.go" -not -path "./vendor/*")
+check-fmt: ## Check file forma
+	@GOIMP=$$(for f in $$(find . -type f -name "*.go" ! -path "./.cache/*" ! -path "./vendor/*" ! -name "bindata.go") ; do \
+		goimports -l $$f ; \
+	done) && echo $$GOIMP && test -z "$$GOIMP"
 
 fmt: ## Format files
 	@goimports -w $$(find . -name "*.go" -not -path "./vendor/*")
