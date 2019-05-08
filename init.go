@@ -221,7 +221,9 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
 		if f.Type.Kind() == reflect.Struct {
-			findLabelIndexes(f.Type, indexes, append(current, i)...)
+			if err := findLabelIndexes(f.Type, indexes, append(current, i)...); err != nil {
+				return err
+			}
 		} else {
 
 			labelTag, ok := f.Tag.Lookup("label")
