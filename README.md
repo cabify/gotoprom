@@ -211,5 +211,5 @@ PASS
 ok  	github.com/cabify/gotoprom	3.369s
 ```
 
-This costs are probably assumable in most of the applications, specially when measuring
+This costs are probably assumable in most of the applications, especially when measuring
 network accesses, etc. which are magnitudes higher.
