@@ -313,12 +313,10 @@ func Test_SummaryWithSpecifiedMaxAge(t *testing.T) {
 	mfs, err := prometheus.DefaultGatherer.Gather()
 	assert.NoError(t, err)
 
-	var ok bool
 	for _, m := range mfs {
 		if *m.Name == "test_without_max_age" {
 			for _, mm := range m.Metric {
-				ok = math.IsNaN(*mm.GetSummary().Quantile[1].Value)
-				assert.Equal(t, true, ok)
+				assert.True(t, math.IsNaN(*mm.GetSummary().Quantile[1].Value))
 			}
 		}
 	}
