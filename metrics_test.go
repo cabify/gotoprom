@@ -284,7 +284,7 @@ func Test_SummaryWithSpecifiedMaxAge(t *testing.T) {
 	summaryHelp := "Uses default value for max age"
 
 	var metrics struct {
-		Summary func() prometheus.Summary `name:"without_max_age" help:"Uses default value for max age" max_age:"1ms"`
+		Summary func() prometheus.Summary `name:"without_max_age" help:"Uses default value for max age" max_age:"1s"`
 	}
 
 	err := gotoprom.Init(&metrics, "test")
@@ -308,7 +308,7 @@ func Test_SummaryWithSpecifiedMaxAge(t *testing.T) {
 	err = testutil.GatherAndCompare(prometheus.DefaultGatherer, strings.NewReader(expectedUnexpired), "test_without_max_age")
 	assert.NoError(t, err)
 
-	time.Sleep(time.Millisecond)
+	time.Sleep(time.Second * 2)
 
 	mfs, err := prometheus.DefaultGatherer.Gather()
 	assert.NoError(t, err)
