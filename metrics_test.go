@@ -1,10 +1,13 @@
 package gotoprom_test
 
 import (
+	"math"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/cabify/gotoprom"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
@@ -18,10 +21,11 @@ func Test_InitHappyCase(t *testing.T) {
 	}
 
 	var metrics struct {
-		HTTPRequestTime     func(labels) prometheus.Observer `name:"http_request_count" help:"Time taken to serve a HTTP request" metricsbuckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
-		DuvelsEmptied       func(labels) prometheus.Counter  `name:"duvels_emptied" help:"Delirium floor sweep count"`
-		RubberDuckInTherapy func(labels) prometheus.Gauge    `name:"rubber_ducks_in_therapy" help:"Number of rubber ducks who need help after some intense coding"`
-		NoLabels            func() prometheus.Counter        `name:"no_labels" help:"Metric without labels"`
+		HTTPRequestTime           func(labels) prometheus.Observer `name:"http_request_count" help:"Time taken to serve a HTTP request" metricsbuckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
+		DuvelsEmptied             func(labels) prometheus.Counter  `name:"duvels_emptied" help:"Delirium floor sweep count"`
+		RubberDuckInTherapy       func(labels) prometheus.Gauge    `name:"rubber_ducks_in_therapy" help:"Number of rubber ducks who need help after some intense coding"`
+		BrokenDeploysAccomplished func(labels) prometheus.Summary  `name:"broken_deploys_accomplished" help:"Number of deploys that broke production"`
+		NoLabels                  func() prometheus.Counter        `name:"no_labels" help:"Metric without labels"`
 	}
 
 	gotoprom.MustInit(&metrics, "delirium")
@@ -36,6 +40,7 @@ func Test_InitHappyCase(t *testing.T) {
 	metrics.HTTPRequestTime(theseLabels).Observe(time.Second.Seconds())
 	metrics.DuvelsEmptied(theseLabels).Add(4)
 	metrics.RubberDuckInTherapy(theseLabels).Set(12)
+	metrics.BrokenDeploysAccomplished(theseLabels).Observe(20)
 	metrics.NoLabels().Add(288.88)
 }
 
@@ -273,6 +278,50 @@ func Test_WrongLabels(t *testing.T) {
 		err := gotoprom.Init(&metrics, "test")
 		assert.NotNil(t, err)
 	})
+}
+
+func Test_SummaryWithSpecifiedMaxAge(t *testing.T) {
+	summaryHelp := "Uses default value for max age"
+
+	var metrics struct {
+		Summary func() prometheus.Summary `name:"without_max_age" help:"Uses default value for max age" max_age:"1ms"`
+	}
+
+	err := gotoprom.Init(&metrics, "test")
+	assert.NoError(t, err)
+
+	metrics.Summary().Observe(1.0)
+	metrics.Summary().Observe(2.0)
+	metrics.Summary().Observe(3.0)
+
+	nl := "\n"
+
+	expectedUnexpired := "" +
+		`# HELP test_without_max_age ` + summaryHelp + nl +
+		`# TYPE test_without_max_age summary` + nl +
+		`test_without_max_age{quantile="0.5"} 2` + nl +
+		`test_without_max_age{quantile="0.9"} 3` + nl +
+		`test_without_max_age{quantile="0.99"} 3` + nl +
+		`test_without_max_age_sum{} 6` + nl +
+		`test_without_max_age_count{} 3` + nl
+
+	err = testutil.GatherAndCompare(prometheus.DefaultGatherer, strings.NewReader(expectedUnexpired), "test_without_max_age")
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond)
+
+	mfs, err := prometheus.DefaultGatherer.Gather()
+	assert.NoError(t, err)
+
+	var ok bool
+	for _, m := range mfs {
+		if *m.Name == "test_without_max_age" {
+			for _, mm := range m.Metric {
+				ok = math.IsNaN(*mm.GetSummary().Quantile[1].Value)
+				assert.Equal(t, true, ok)
+			}
+		}
+	}
 }
 
 func retrieveReportedLabels(t *testing.T, metric string) map[string]string {
