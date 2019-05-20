@@ -14,6 +14,7 @@ func init() {
 	DefaultInitializer.MustAddBuilder(prometheusvanilla.ObserverType, prometheusvanilla.BuildObserver)
 	DefaultInitializer.MustAddBuilder(prometheusvanilla.CounterType, prometheusvanilla.BuildCounter)
 	DefaultInitializer.MustAddBuilder(prometheusvanilla.GaugeType, prometheusvanilla.BuildGauge)
+	DefaultInitializer.MustAddBuilder(prometheusvanilla.SummaryType, prometheusvanilla.BuildSummary)
 }
 
 // MustAddBuilder will AddBuilder and panic if an error occurs
