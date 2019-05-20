@@ -129,7 +129,6 @@ func maxAgeFromTag(tag reflect.StructTag) (time.Duration, error) {
 	if !ok {
 		return 0, nil
 	}
-	var maxAgeDuration time.Duration
 	maxAgeDuration, err := time.ParseDuration(maxAgeString)
 	if err != nil {
 		return 0, fmt.Errorf("invalid time duration specified: %s", err)

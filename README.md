@@ -21,8 +21,9 @@ Define your metrics:
 var metrics struct {
 	SomeCounter                     func() prometheus.Counter  `name:"some_counter" help:"some counter"`
 	SomeObserver                    func() prometheus.Observer `name:"some_observer" help:"Some observer with default buckets"`
-	SomeObserverWithSpecificBuckets func() prometheus.Observer `name:"some_observer_with_buckets" help:"Some observer with default buckets" buckets:".01,.05,.1"`
+	SomeObserverWithSpecificBuckets func() prometheus.Observer `name:"some_observer_with_buckets" help:"Some observer with custom buckets" buckets:".01,.05,.1"`
 	SomeGauge                       func() prometheus.Gauge    `name:"some_gauge" help:"Some gauge"`
+	SomeSummaryWithSpecificMaxAge   func() prometheus.Summary  `name:"some_summary_with_specific_max_age" help:"Some summary with custom max age" max_age:"20m"`
 
 	Requests struct {
 		Total func(requestLabels) prometheus.Count `name:"total" help:"Total amount of requests served"`
@@ -57,6 +58,7 @@ By default, only some basic metric types are registered when `gotoprom` is intia
 * `prometheus.Counter`
 * `prometheus.Observer`
 * `prometheus.Gauge`
+* `prometheus.Summary`
 
 You can extend this by adding more types, for instance, if you want to observe time and want
 to avoid repetitive code you can create a `prometheusx.TimeObserver`:
