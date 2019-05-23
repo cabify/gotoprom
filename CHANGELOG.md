@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2019-05-20
 ### Fixed
--  Included the implementation builder for summaries[#14](https://github.com/cabify/gotoprom/pull/14)
+-  Included the implementation builder for summaries [#14](https://github.com/cabify/gotoprom/pull/14)
 
 ## [0.1.1] - 2019-05-08
 ### Fixed
