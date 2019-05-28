@@ -192,7 +192,7 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				labels[label.name] = strconv.FormatInt(value.Int(), 10)
 			default:
-				// Should not happen
+				// Should not happen since we've already checked this in the findLabelIndexes function
 				panic(fmt.Errorf("field %s has unsupported kind %v", label.name, label.kind))
 			}
 		}
