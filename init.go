@@ -35,6 +35,8 @@ type Initializer interface {
 	Init(metrics interface{}, namespace string) error
 }
 
+//go:generate mockery -testonly -inpkg -case underscore -name Notifier
+
 // NewInitializer creates a new Initializer for the prometheus.Registerer provided
 func NewInitializer(registerer prometheus.Registerer) Initializer {
 	return initializer{
