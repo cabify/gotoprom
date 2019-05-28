@@ -9,9 +9,8 @@
 It doesn't replace the [official Prometheus client](https://github.com/prometheus/client_golang)
 but adds a wrapper on top of it.
 
-`gotoprom` is built for developers who like to navigate the code using their IDEs and like to use
-the "find usages" functionality, making refactoring and debugging easier at the code of writing
-slightly more verbose code.
+`gotoprom` is built for developers who like type safety, navigating the code using IDEs and using a “find usages”
+functionality, making refactoring and debugging easier at the cost of performance and writing slightly more verbose code.
 
 ## Usage
 
