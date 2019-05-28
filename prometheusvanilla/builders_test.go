@@ -42,11 +42,16 @@ func TestBuilders(t *testing.T) {
 		assert.Implements(t, (*prometheus.Counter)(nil), f(labels))
 	})
 
-	t.Run("Test building a observer", func(t *testing.T) {
+	t.Run("Test building an observer", func(t *testing.T) {
 		f, c, err := BuildObserver(name, help, nameSpace, keys, "")
 		assert.NoError(t, err)
 		assert.Implements(t, (*prometheus.Collector)(nil), c)
 		assert.Implements(t, (*prometheus.Observer)(nil), f(labels))
+	})
+
+	t.Run("Test building an observer with malformed buckets", func(t *testing.T) {
+		_, _, err := BuildObserver(name, help, nameSpace, keys, `buckets:"foo"`)
+		assert.Error(t, err)
 	})
 
 	t.Run("Test building a summary", func(t *testing.T) {
@@ -54,6 +59,11 @@ func TestBuilders(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Implements(t, (*prometheus.Collector)(nil), c)
 		assert.Implements(t, (*prometheus.Summary)(nil), f(labels))
+	})
+
+	t.Run("Test building a summary with malformed max_age", func(t *testing.T) {
+		_, _, err := BuildSummary(name, help, nameSpace, keys, `max_age:"one year"`)
+		assert.Error(t, err)
 	})
 }
 
