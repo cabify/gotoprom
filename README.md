@@ -12,6 +12,50 @@ but adds a wrapper on top of it.
 `gotoprom` is built for developers who like type safety, navigating the code using IDEs and using a “find usages”
 functionality, making refactoring and debugging easier at the cost of performance and writing slightly more verbose code.
 
+
+## Motivation
+
+Main motivation for this library was to have type-safety on the Prometheus labels, which are
+just a `map[string]string` in the original library, and their values can be reported even
+without mentioning the label name, just relying on the order they were declared in.
+
+For example, it replaces:
+```go
+httpReqs := prometheus.NewCounterVec(
+    prometheus.CounterOpts{
+        Name: "http_requests_total",
+        Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
+    },
+    []string{"code", "method"},
+)
+prometheus.MustRegister(httpReqs)
+
+// ...
+
+httpReqs.WithLabelValues("404", "POST").Add(42)
+```
+
+With:
+```go
+var metrics = struct{
+	Reqs func(labels) prometheus.Counter `name:"requests_total" help:"How many HTTP requests processed, partitioned by status code and HTTP method."`
+}
+
+type labels struct {
+	Code   int    `label:"code"`
+	Method string `label:"method"`
+}
+
+gotoprom.MustInit(&metrics, "http")
+
+// ...
+
+metrics.Reqs(labels{Code: 404, Method: "POST"}).Inc()
+```
+
+This way it's impossible to mess the call by exchanging the order of `"POST"` & `"404"` params.
+
+
 ## Usage
 
 Define your metrics:
@@ -50,6 +94,7 @@ Measure stuff:
 metrics.SomeGauge().Set(100)
 metrics.Requests.Total(requestLabels{Service: "google", StatusCode: 404, Success: false}).Inc()
 ```
+
 
 ## Custom metric types
 
@@ -140,49 +185,10 @@ defer metrics.DurationSeconds().Since(t0)
 // ...
 ```
 
+
 ### Replacing metric builders
 If you don't like the default metric builders, you can replace the `DefaultInitializer` with your own one.
 
-## Motivation
-
-Main motivation for this library was to have type-safety on the Prometheus labels, which are
-just a `map[string]string` in the original library, and their values can be reported even
-without mentioning the label name, just relying on the order they were declared in.
-
-For example, it replaces:
-```go
-httpReqs := prometheus.NewCounterVec(
-    prometheus.CounterOpts{
-        Name: "http_requests_total",
-        Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
-    },
-    []string{"code", "method"},
-)
-prometheus.MustRegister(httpReqs)
-
-// ...
-
-httpReqs.WithLabelValues("404", "POST").Add(42)
-```
-
-With:
-```go
-var metrics = struct{
-	Reqs func(labels) prometheus.Counter `name:"requests_total" help:"How many HTTP requests processed, partitioned by status code and HTTP method."`
-}
-type labels struct {
-	Code int `label:"code"`
-	Method string `label:"method"`
-}
-
-gotoprom.MustInit(&metrics, "http")
-
-// ...
-
-metrics.Reqs(labels{Code: 404, Method: "POST"}).Inc()
-```
-
-This way it's impossible to mess the call by exchanging the order of `"POST"` & `"404"` params.
 
 ## Performance
 
