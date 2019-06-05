@@ -121,7 +121,7 @@ func bucketsFromTag(tag reflect.StructTag) ([]float64, error) {
 
 // DefaultBuckets provides a list of buckets you can use when you don't know what to use yet.
 func DefaultBuckets() []float64 {
-	return []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 25}
+	return []float64{.05, .1, .5, 1, 5, 10}
 }
 
 func maxAgeFromTag(tag reflect.StructTag) (time.Duration, error) {
