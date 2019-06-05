@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.1] - 2019-06-05
 ### Changed
-- Reduced the number of default buckets from 12 to 6 between 0.05s and 10s
+- Reduced the number of default buckets from 12 to 7 between 0.05s and 10s
 
 ## [0.2.0] - 2019-05-20
 ### Fixed
