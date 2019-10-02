@@ -4,6 +4,7 @@
 [![Travis CI build status](https://travis-ci.com/cabify/gotoprom.svg?branch=master)](https://travis-ci.com/cabify/gotoprom)
 [![Coverage Status](https://coveralls.io/repos/github/cabify/gotoprom/badge.svg)](https://coveralls.io/github/cabify/gotoprom)
 [![GoDoc](https://godoc.org/github.com/cabify/gotoprom?status.svg)](https://godoc.org/github.com/cabify/gotoprom)
+[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)  
 
 `gotoprom` offers an easy to use declarative API with type-safe labels for building and using Prometheus metrics.
 It doesn't replace the [official Prometheus client](https://github.com/prometheus/client_golang)
