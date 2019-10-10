@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2019-10-10
+### Added
+- Add objectives to summaries through struct tag and set default values when none specified
+### Changed
+- Upgraded client_golang to v1
+
 ## [0.2.1] - 2019-06-05
 ### Changed
 - Reduced the number of default buckets from 12 to 7 between 0.05s and 10s
