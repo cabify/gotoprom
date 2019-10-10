@@ -2,6 +2,7 @@ package prometheusvanilla
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -85,13 +86,14 @@ func BuildSummary(name, help, namespace string, labelNames []string, tag reflect
 	if err != nil {
 		return nil, nil, fmt.Errorf("build summary %q: %s", name, err)
 	}
-
+	objectives, err := objectivesFromTag(tag)
 	sum := prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Name:      name,
-			Help:      help,
-			Namespace: namespace,
-			MaxAge:    maxAge,
+			Name:       name,
+			Help:       help,
+			Namespace:  namespace,
+			MaxAge:     maxAge,
+			Objectives: objectives,
 		},
 		labelNames,
 	)
@@ -134,4 +136,33 @@ func maxAgeFromTag(tag reflect.StructTag) (time.Duration, error) {
 		return 0, fmt.Errorf("invalid max_age tag specified: %s", err)
 	}
 	return maxAgeDuration, nil
+}
+
+func objectivesFromTag(tag reflect.StructTag) (map[float64]float64, error) {
+	quantileString, ok := tag.Lookup("objectives")
+	if !ok {
+		return DefaultObjectives(), nil
+	}
+	quantileSlice := strings.Split(quantileString, ",")
+	objectives := make(map[float64]float64, len(quantileSlice))
+	for _, quantile := range quantileSlice {
+		q, err := strconv.ParseFloat(quantile, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid objective specified: %s", err)
+		}
+		objectives[q] = absError(q)
+	}
+	return objectives, nil
+}
+
+// DefaultObjectives provides a list of objectives you can use when you don't know what to use yet.
+func DefaultObjectives() map[float64]float64 {
+	return map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
+}
+
+// absError will calculate the absolute error for a given objective up to 3 decimal places.
+// The variance is calculated based on the given quantile.
+// Values in lower quantiles have a higher probability of being similar, so we can apply greater variances.
+func absError(obj float64) float64 {
+	return math.Round((0.1*(1-obj))*1000) / 1000
 }
