@@ -1,6 +1,7 @@
 package prometheusvanilla
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -16,13 +17,16 @@ const (
 )
 
 var (
-	labels                            = make(prometheus.Labels, 2)
-	keys                              = make([]string, 0, len(labels))
-	defaultTag      reflect.StructTag = `name:"some_name" help:"some help for the metric"`
-	bucketsTag      reflect.StructTag = `name:"some_name" help:"some help for the metric" buckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
-	maxAgeTag       reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h"`
-	expectedBuckets                   = []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10}
-	expectedMaxAge                    = time.Hour
+	labels                                   = make(prometheus.Labels, 2)
+	keys                                     = make([]string, 0, len(labels))
+	defaultTag             reflect.StructTag = `name:"some_name" help:"some help for the metric"`
+	bucketsTag             reflect.StructTag = `name:"some_name" help:"some help for the metric" buckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
+	maxAgeTag              reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h"`
+	objectivesTag          reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:"0.55,0.95,0.98"`
+	objectivesMalformedTag reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:"notFloat"`
+	expectedBuckets                          = []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10}
+	expectedMaxAge                           = time.Hour
+	expectedObjectives                       = map[float64]float64{0.55: 0.045, 0.95: 0.005, 0.98: 0.002}
 )
 
 func TestBuilders(t *testing.T) {
@@ -62,7 +66,7 @@ func TestBuilders(t *testing.T) {
 	})
 
 	t.Run("Test building a summary with malformed max_age", func(t *testing.T) {
-		_, _, err := BuildSummary(name, help, nameSpace, keys, `max_age:"one year"`)
+		_, _, err := BuildSummary(name, help, nameSpace, keys, `max_age:"one year" objectives:"0.1,0.25"`)
 		assert.Error(t, err)
 	})
 }
@@ -85,13 +89,51 @@ func TestMaxAge(t *testing.T) {
 	t.Run("Test it retrieves custom max_age", func(t *testing.T) {
 		maxAge, err := maxAgeFromTag(maxAgeTag)
 		assert.NoError(t, err)
-		assert.Equal(t, maxAge, expectedMaxAge)
+		assert.Equal(t, expectedMaxAge, maxAge)
 	})
 	t.Run("Test it returns 0 when no max_age is found", func(t *testing.T) {
 		maxAge, err := maxAgeFromTag(defaultTag)
 		assert.NoError(t, err)
-		assert.Equal(t, maxAge, time.Duration(0))
+		assert.Equal(t, time.Duration(0), maxAge)
 	})
+}
+
+func TestObjectives(t *testing.T) {
+	t.Run("Test parsing objectives from tag", func(t *testing.T) {
+		obj, err := objectivesFromTag(objectivesTag)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedObjectives, obj)
+	})
+	t.Run("Test returning default objective values when none are specified", func(t *testing.T) {
+		obj, err := objectivesFromTag(defaultTag)
+		assert.NoError(t, err)
+		assert.Equal(t, DefaultObjectives(), obj)
+	})
+	t.Run("Test returning default objective values when none are specified", func(t *testing.T) {
+		obj, err := objectivesFromTag(objectivesMalformedTag)
+		assert.Error(t, err)
+		assert.Nil(t, obj)
+	})
+}
+
+func TestAbsError(t *testing.T) {
+	tests := []struct {
+		objective float64
+		absErr    float64
+	}{
+		{0.5, 0.05},
+		{0.99, 0.001},
+		{0.999, 0},
+		{0, 0.1},
+		{-10, 1.1},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("Test calculate absolute error for obejctive %2f", test.objective), func(t *testing.T) {
+			e := absError(test.objective)
+			assert.Equal(t, test.absErr, e)
+		})
+	}
 }
 
 func initLabels() {
