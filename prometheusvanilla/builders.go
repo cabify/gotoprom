@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	// ObserverType is the type of prometheus.Observer interface
-	ObserverType = reflect.TypeOf((*prometheus.Observer)(nil)).Elem()
+	// HistogramType is the type of prometheus.Histogram interface
+	HistogramType = reflect.TypeOf((*prometheus.Histogram)(nil)).Elem()
 	// CounterType is the type of prometheus.Counter interface
 	CounterType = reflect.TypeOf((*prometheus.Counter)(nil)).Elem()
 	// GaugeType is the type of prometheus.Gauge interface
@@ -56,9 +56,9 @@ func BuildGauge(name, help, namespace string, labelNames []string, tag reflect.S
 	}, gauge, nil
 }
 
-// BuildObserver builds a prometheus.Observer
-// The function it returns returns a prometheus.Observer type as an interface{}
-func BuildObserver(name, help, namespace string, labelNames []string, tag reflect.StructTag) (func(prometheus.Labels) interface{}, prometheus.Collector, error) {
+// BuildHistogram builds a prometheus.Histogram
+// The function it returns returns a prometheus.Histogram type as an interface{}
+func BuildHistogram(name, help, namespace string, labelNames []string, tag reflect.StructTag) (func(prometheus.Labels) interface{}, prometheus.Collector, error) {
 	buckets, err := bucketsFromTag(tag)
 	if err != nil {
 		return nil, nil, fmt.Errorf("build histogram %q: %s", name, err)

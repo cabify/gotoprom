@@ -11,7 +11,7 @@ import (
 var DefaultInitializer = NewInitializer(prometheus.DefaultRegisterer)
 
 func init() {
-	DefaultInitializer.MustAddBuilder(prometheusvanilla.ObserverType, prometheusvanilla.BuildObserver)
+	DefaultInitializer.MustAddBuilder(prometheusvanilla.HistogramType, prometheusvanilla.BuildHistogram)
 	DefaultInitializer.MustAddBuilder(prometheusvanilla.CounterType, prometheusvanilla.BuildCounter)
 	DefaultInitializer.MustAddBuilder(prometheusvanilla.GaugeType, prometheusvanilla.BuildGauge)
 	DefaultInitializer.MustAddBuilder(prometheusvanilla.SummaryType, prometheusvanilla.BuildSummary)

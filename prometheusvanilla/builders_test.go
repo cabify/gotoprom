@@ -46,15 +46,15 @@ func TestBuilders(t *testing.T) {
 		assert.Implements(t, (*prometheus.Counter)(nil), f(labels))
 	})
 
-	t.Run("Test building an observer", func(t *testing.T) {
-		f, c, err := BuildObserver(name, help, nameSpace, keys, "")
+	t.Run("Test building a histogram", func(t *testing.T) {
+		f, c, err := BuildHistogram(name, help, nameSpace, keys, "")
 		assert.NoError(t, err)
 		assert.Implements(t, (*prometheus.Collector)(nil), c)
-		assert.Implements(t, (*prometheus.Observer)(nil), f(labels))
+		assert.Implements(t, (*prometheus.Histogram)(nil), f(labels))
 	})
 
-	t.Run("Test building an observer with malformed buckets", func(t *testing.T) {
-		_, _, err := BuildObserver(name, help, nameSpace, keys, `buckets:"foo"`)
+	t.Run("Test building a histogram with malformed buckets", func(t *testing.T) {
+		_, _, err := BuildHistogram(name, help, nameSpace, keys, `buckets:"foo"`)
 		assert.Error(t, err)
 	})
 
