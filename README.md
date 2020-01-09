@@ -63,11 +63,11 @@ Define your metrics:
 
 ```go
 var metrics struct {
-	SomeCounter                     func() prometheus.Counter  `name:"some_counter" help:"some counter"`
-	SomeObserver                    func() prometheus.Observer `name:"some_observer" help:"Some observer with default buckets"`
-	SomeObserverWithSpecificBuckets func() prometheus.Observer `name:"some_observer_with_buckets" help:"Some observer with custom buckets" buckets:".01,.05,.1"`
-	SomeGauge                       func() prometheus.Gauge    `name:"some_gauge" help:"Some gauge"`
-	SomeSummaryWithSpecificMaxAge   func() prometheus.Summary  `name:"some_summary_with_specific_max_age" help:"Some summary with custom max age" max_age:"20m"`
+	SomeCounter                      func() prometheus.Counter   `name:"some_counter" help:"some counter"`
+	SomeHistogram                    func() prometheus.Histogram `name:"some_histogram" help:"Some histogram with default buckets"`
+	SomeHistogramWithSpecificBuckets func() prometheus.Histogram `name:"some_histogram_with_buckets" help:"Some histogram with custom buckets" buckets:".01,.05,.1"`
+	SomeGauge                        func() prometheus.Gauge     `name:"some_gauge" help:"Some gauge"`
+	SomeSummaryWithSpecificMaxAge    func() prometheus.Summary   `name:"some_summary_with_specific_max_age" help:"Some summary with custom max age" max_age:"20m"`
 
 	Requests struct {
 		Total func(requestLabels) prometheus.Count `name:"total" help:"Total amount of requests served"`
@@ -101,12 +101,12 @@ metrics.Requests.Total(requestLabels{Service: "google", StatusCode: 404, Success
 
 By default, only some basic metric types are registered when `gotoprom` is intialized:
 * `prometheus.Counter`
-* `prometheus.Observer`
+* `prometheus.Histogram`
 * `prometheus.Gauge`
 * `prometheus.Summary`
 
 You can extend this by adding more types, for instance, if you want to observe time and want
-to avoid repetitive code you can create a `prometheusx.TimeObserver`:
+to avoid repetitive code you can create a `prometheusx.TimeHistogram`:
 ```go
 package prometheusx
 
@@ -120,48 +120,48 @@ import (
 )
 
 var (
-	// TimeObserverType is the reflect.Type of the TimeObserver interface
-	TimeObserverType = reflect.TypeOf((*TimeObserver)(nil)).Elem()
+	// TimeHistogramType is the reflect.Type of the TimeHistogram interface
+	TimeHistogramType = reflect.TypeOf((*TimeHistogram)(nil)).Elem()
 )
 
 func init() {
-	gotoprom.MustAddBuilder(TimeObserverType, RegisterTimeObserver)
+	gotoprom.MustAddBuilder(TimeHistogramType, RegisterTimeHistogram)
 }
 
-// RegisterTimeObserver registers a TimeObserver after registering the underlying prometheus.Observer in the prometheus.Registerer provided
-// The function it returns returns a TimeObserver type as an interface{}
-func RegisterTimeObserver(name, help, namespace string, labelNames []string, tag reflect.StructTag) (func(prometheus.Labels) interface{}, prometheus.Collector, error) {
-	f, collector, err := prometheusvanilla.BuildObserver(name, help, namespace, labelNames, tag)
+// RegisterTimeHistogram registers a TimeHistogram after registering the underlying prometheus.Histogram in the prometheus.Registerer provided
+// The function it returns returns a TimeHistogram type as an interface{}
+func RegisterTimeHistogram(name, help, namespace string, labelNames []string, tag reflect.StructTag) (func(prometheus.Labels) interface{}, prometheus.Collector, error) {
+	f, collector, err := prometheusvanilla.BuildHistogram(name, help, namespace, labelNames, tag)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return func(labels prometheus.Labels) interface{} {
-		return timeObserverAdapter{Observer: f(labels).(prometheus.Observer)}
+		return timeHistogramAdapter{Histogram: f(labels).(prometheus.Histogram)}
 	}, collector, nil
 }
 
-// TimeObserver offers the basic prometheus.Observer functionality
+// TimeHistogram offers the basic prometheus.Histogram functionality
 // with additional time-observing functions
-type TimeObserver interface {
-	prometheus.Observer
+type TimeHistogram interface {
+	prometheus.Histogram
 	// Duration observes the duration in seconds
 	Duration(duration time.Duration)
 	// Since observes the duration in seconds since the time point provided
 	Since(time.Time)
 }
 
-type timeObserverAdapter struct {
-	prometheus.Observer
+type timeHistogramAdapter struct {
+	prometheus.Histogram
 }
 
 // Duration observes the duration in seconds
-func (to timeObserverAdapter) Duration(duration time.Duration) {
+func (to timeHistogramAdapter) Duration(duration time.Duration) {
 	to.Observe(duration.Seconds())
 }
 
 // Since observes the duration in seconds since the time point provided
-func (to timeObserverAdapter) Since(duration time.Time) {
+func (to timeHistogramAdapter) Since(duration time.Time) {
 	to.Duration(time.Since(duration))
 }
 ```
@@ -170,7 +170,7 @@ So you can later define it as:
 
 ```go
 var metrics struct {
-	DurationSeconds func() prometheusx.TimeObserver `name:"duration_seconds" help:"Duration in seconds"`
+	DurationSeconds func() prometheusx.TimeHistogram `name:"duration_seconds" help:"Duration in seconds"`
 }
 
 func init() {

@@ -18,7 +18,7 @@ func TestMustAddBuilder(t *testing.T) {
 
 	expectedErr := errors.New("my err")
 
-	typ := prometheusvanilla.ObserverType
+	typ := prometheusvanilla.HistogramType
 	builder := func(
 		name, help, namespace string,
 		labelNames []string,
@@ -43,7 +43,7 @@ func TestAddBuilder(t *testing.T) {
 
 	expectedErr := errors.New("my err")
 
-	typ := prometheusvanilla.ObserverType
+	typ := prometheusvanilla.HistogramType
 	builder := func(
 		name, help, namespace string,
 		labelNames []string,
