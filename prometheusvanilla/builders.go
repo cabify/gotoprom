@@ -119,7 +119,7 @@ func bucketsFromTag(tag reflect.StructTag) ([]float64, error) {
 		return nil, fmt.Errorf("buckets not specified")
 	}
 
-	if len(bucketsString) == 0 {
+	if bucketsString == "" {
 		return nil, nil
 	}
 
@@ -160,7 +160,7 @@ func objectivesFromTag(tag reflect.StructTag) (map[float64]float64, error) {
 		return nil, fmt.Errorf("objectives not specified")
 	}
 
-	if len(quantileString) == 0 {
+	if quantileString == "" {
 		return nil, nil
 	}
 

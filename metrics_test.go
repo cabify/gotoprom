@@ -82,9 +82,9 @@ func Test_NestedMetrics(t *testing.T) {
 	}
 
 	assert.Equal(t, map[string]struct{}{
-		"testservice_server_hits_total":        struct{}{},
-		"testservice_client_requests_total":    struct{}{},
-		"testservice_memory_consumption_bytes": struct{}{},
+		"testservice_server_hits_total":        {},
+		"testservice_client_requests_total":    {},
+		"testservice_memory_consumption_bytes": {},
 	}, reportedMetrics)
 }
 

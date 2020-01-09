@@ -28,10 +28,10 @@ type Initializer interface {
 	// func() interface{} implements <typ>
 	AddBuilder(typ reflect.Type, registerer Builder) error
 
-	// MustInit initialises the metrics or panics.
+	// MustInit initializes the metrics or panics.
 	MustInit(metrics interface{}, namespace string)
 
-	// Init initialises the metrics in the given namespace.
+	// Init initializes the metrics in the given namespace.
 	Init(metrics interface{}, namespace string) error
 }
 
@@ -68,14 +68,14 @@ func (in initializer) AddBuilder(typ reflect.Type, builder Builder) error {
 	return nil
 }
 
-// MustInit initialises the metrics or panics.
+// MustInit initializes the metrics or panics.
 func (in initializer) MustInit(metrics interface{}, namespace string) {
 	if err := in.Init(metrics, namespace); err != nil {
 		panic(err)
 	}
 }
 
-// Init initialises the metrics in the given namespace.
+// Init initializes the metrics in the given namespace.
 func (in initializer) Init(metrics interface{}, namespace string) error {
 	metricsPtr := reflect.ValueOf(metrics)
 	if metricsPtr.Kind() != reflect.Ptr {
@@ -91,7 +91,6 @@ func (in initializer) initMetrics(group reflect.Value, namespaces ...string) err
 	}
 
 	for i := 0; i < group.Type().NumField(); i++ {
-
 		field := group.Field(i)
 		fieldType := group.Type().Field(i)
 
@@ -177,7 +176,6 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 	metricFunc := func(args []reflect.Value) []reflect.Value {
 		labels := make(prometheus.Labels, len(labelIndexes))
 		for label, index := range labelIndexes {
-
 			value := args[0].FieldByIndex(index)
 
 			if label.hasDefaultValue && value.Interface() == label.zeroTypeValueInterface {
@@ -227,7 +225,6 @@ func findLabelIndexes(typ reflect.Type, indexes map[label][]int, current ...int)
 				return err
 			}
 		} else {
-
 			labelTag, ok := f.Tag.Lookup("label")
 			if !ok {
 				return fmt.Errorf("field %s does not have the label tag", f.Name)
