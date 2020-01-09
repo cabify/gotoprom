@@ -24,7 +24,7 @@ func Test_InitHappyCase(t *testing.T) {
 		HTTPRequestTime           func(labels) prometheus.Histogram `name:"http_request_count" help:"Time taken to serve a HTTP request" buckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
 		DuvelsEmptied             func(labels) prometheus.Counter   `name:"duvels_emptied" help:"Delirium floor sweep count"`
 		RubberDuckInTherapy       func(labels) prometheus.Gauge     `name:"rubber_ducks_in_therapy" help:"Number of rubber ducks who need help after some intense coding"`
-		BrokenDeploysAccomplished func(labels) prometheus.Summary   `name:"broken_deploys_accomplished" help:"Number of deploys that broke production"`
+		BrokenDeploysAccomplished func(labels) prometheus.Summary   `name:"broken_deploys_accomplished" help:"Number of deploys that broke production" objectives:"0.5,0.9,0.99"`
 		NoLabels                  func() prometheus.Counter         `name:"no_labels" help:"Metric without labels"`
 	}
 
@@ -284,7 +284,7 @@ func Test_SummaryWithSpecifiedMaxAge(t *testing.T) {
 	summaryHelp := "Uses default value for max age"
 
 	var metrics struct {
-		Summary func() prometheus.Summary `name:"without_max_age" help:"Uses default value for max age" max_age:"1s"`
+		Summary func() prometheus.Summary `name:"without_max_age" help:"Uses default value for max age" max_age:"1s" objectives:".5,.9,.99"`
 	}
 
 	err := gotoprom.Init(&metrics, "test")

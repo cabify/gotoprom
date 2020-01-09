@@ -87,6 +87,10 @@ func BuildSummary(name, help, namespace string, labelNames []string, tag reflect
 		return nil, nil, fmt.Errorf("build summary %q: %s", name, err)
 	}
 	objectives, err := objectivesFromTag(tag)
+	if err != nil {
+		return nil, nil, fmt.Errorf("build summary %q: %s", name, err)
+	}
+
 	sum := prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
 			Name:       name,
@@ -139,26 +143,31 @@ func maxAgeFromTag(tag reflect.StructTag) (time.Duration, error) {
 	return maxAgeDuration, nil
 }
 
+// objectivesFromTag will return the objectives from the tag provided
+// if there's no objectives tag, it will return an error
+// if objectives is an empty string, it will return a nil value instead of an initialized empty map
+// this is intended to initialize prometheus metric with default values, as prometheus will
+// check for the value to be nil instead of checking for its len to be 0 (like it does for buckets)
 func objectivesFromTag(tag reflect.StructTag) (map[float64]float64, error) {
 	quantileString, ok := tag.Lookup("objectives")
 	if !ok {
-		return DefaultObjectives(), nil
+		return nil, fmt.Errorf("objectives not specified")
 	}
+
+	if len(quantileString) == 0 {
+		return nil, nil
+	}
+
 	quantileSlice := strings.Split(quantileString, ",")
 	objectives := make(map[float64]float64, len(quantileSlice))
-	for _, quantile := range quantileSlice {
-		q, err := strconv.ParseFloat(quantile, 64)
+	for i := range quantileSlice {
+		q, err := strconv.ParseFloat(quantileSlice[i], 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid objective specified: %s", err)
 		}
 		objectives[q] = absError(q)
 	}
 	return objectives, nil
-}
-
-// DefaultObjectives provides a list of objectives you can use when you don't know what to use yet.
-func DefaultObjectives() map[float64]float64 {
-	return map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
 }
 
 // absError will calculate the absolute error for a given objective up to 3 decimal places.

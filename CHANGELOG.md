@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Support for empty buckets tag, which will generate nil buckets for the prometheus Histogram and use default prometheus buckets
+- Support for empty objectives tag, which will generate nil objectives for the prometheus Summary and use an empty objectives map after all.
 
 ### Changed
 - *Breaking*: `prometheus.Histogram` is now used to build histograms, instead of `prometheus.Observer`, which means that previous code building `prometheus.Observer` won't compile anymore.
 
 ### Removed
 - *Breaking*: default buckets on histograms. All histogram should explicitly specify their buckets now or they will fail to build.
+- *Breaking*: default objectives on summaries. All summaries should explicitly specify their objectives now or they will fail to build.
+
+### Fixed
+- Summary building was not failing with malformed objectives
 
 ## [0.3.0] - 2019-10-10
 ### Added
