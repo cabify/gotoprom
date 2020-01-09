@@ -67,7 +67,7 @@ var metrics struct {
 	SomeHistogram                    func() prometheus.Histogram `name:"some_histogram" help:"Some histogram with default prometheus buckets" buckets:""`
 	SomeHistogramWithSpecificBuckets func() prometheus.Histogram `name:"some_histogram_with_buckets" help:"Some histogram with custom buckets" buckets:".01,.05,.1"`
 	SomeGauge                        func() prometheus.Gauge     `name:"some_gauge" help:"Some gauge"`
-	SomeSummaryWithSpecificMaxAge    func() prometheus.Summary   `name:"some_summary_with_specific_max_age" help:"Some summary with custom max age" max_age:"20m"`
+	SomeSummaryWithSpecificMaxAge    func() prometheus.Summary   `name:"some_summary_with_specific_max_age" help:"Some summary with custom max age" max_age:"20m" objectives:"0.50,0.95,0.99"`
 
 	Requests struct {
 		Total func(requestLabels) prometheus.Count `name:"total" help:"Total amount of requests served"`

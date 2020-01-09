@@ -27,7 +27,8 @@ var (
 
 	maxAgeTag              reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h"`
 	objectivesTag          reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:"0.55,0.95,0.98"`
-	objectivesMalformedTag reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:"notFloat"`
+	emptyObjectivesTag     reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:""`
+	malformedObjectivesTag reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:"notFloat"`
 
 	expectedBuckets    = []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10}
 	expectedMaxAge     = time.Hour
@@ -64,7 +65,7 @@ func TestBuilders(t *testing.T) {
 	})
 
 	t.Run("Test building a summary", func(t *testing.T) {
-		f, c, err := BuildSummary(name, help, nameSpace, keys, "")
+		f, c, err := BuildSummary(name, help, nameSpace, keys, `objectives:""`)
 		assert.NoError(t, err)
 		assert.Implements(t, (*prometheus.Collector)(nil), c)
 		assert.Implements(t, (*prometheus.Summary)(nil), f(labels))
@@ -72,6 +73,16 @@ func TestBuilders(t *testing.T) {
 
 	t.Run("Test building a summary with malformed max_age", func(t *testing.T) {
 		_, _, err := BuildSummary(name, help, nameSpace, keys, `max_age:"one year" objectives:"0.1,0.25"`)
+		assert.Error(t, err)
+	})
+
+	t.Run("Test building a summary without objectives", func(t *testing.T) {
+		_, _, err := BuildSummary(name, help, nameSpace, keys, "")
+		assert.Error(t, err)
+	})
+
+	t.Run("Test building a summary with malformed objectives", func(t *testing.T) {
+		_, _, err := BuildSummary(name, help, nameSpace, keys, `objectives:"."`)
 		assert.Error(t, err)
 	})
 }
@@ -119,13 +130,13 @@ func TestObjectives(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expectedObjectives, obj)
 	})
-	t.Run("Test returning default objective values when none are specified", func(t *testing.T) {
-		obj, err := objectivesFromTag(defaultTag)
+	t.Run("Test parsing empty from tag", func(t *testing.T) {
+		obj, err := objectivesFromTag(emptyObjectivesTag)
 		assert.NoError(t, err)
-		assert.Equal(t, DefaultObjectives(), obj)
+		assert.Equal(t, map[float64]float64(nil), obj)
 	})
 	t.Run("Test returning default objective values when none are specified", func(t *testing.T) {
-		obj, err := objectivesFromTag(objectivesMalformedTag)
+		obj, err := objectivesFromTag(malformedObjectivesTag)
 		assert.Error(t, err)
 		assert.Nil(t, obj)
 	})
