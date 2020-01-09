@@ -5,8 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Support for empty buckets tag, which will generate nil buckets for the prometheus Histogram and use default prometheus buckets
+
 ### Changed
 - *Breaking*: `prometheus.Histogram` is now used to build histograms, instead of `prometheus.Observer`, which means that previous code building `prometheus.Observer` won't compile anymore.
+
+### Removed
+- *Breaking*: default buckets on histograms. All histogram should explicitly specify their buckets now or they will fail to build.
 
 ## [0.3.0] - 2019-10-10
 ### Added

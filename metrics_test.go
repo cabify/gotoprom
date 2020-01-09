@@ -21,7 +21,7 @@ func Test_InitHappyCase(t *testing.T) {
 	}
 
 	var metrics struct {
-		HTTPRequestTime           func(labels) prometheus.Histogram `name:"http_request_count" help:"Time taken to serve a HTTP request" metricsbuckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
+		HTTPRequestTime           func(labels) prometheus.Histogram `name:"http_request_count" help:"Time taken to serve a HTTP request" buckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
 		DuvelsEmptied             func(labels) prometheus.Counter   `name:"duvels_emptied" help:"Delirium floor sweep count"`
 		RubberDuckInTherapy       func(labels) prometheus.Gauge     `name:"rubber_ducks_in_therapy" help:"Number of rubber ducks who need help after some intense coding"`
 		BrokenDeploysAccomplished func(labels) prometheus.Summary   `name:"broken_deploys_accomplished" help:"Number of deploys that broke production"`
@@ -124,7 +124,7 @@ func Test_LabelsWithBooleans(t *testing.T) {
 	}
 
 	var metrics struct {
-		WithLabels func(labelsWithBools) prometheus.Histogram `name:"with_booleans" help:"Parse booleans as strings"`
+		WithLabels func(labelsWithBools) prometheus.Histogram `name:"with_booleans" help:"Parse booleans as strings" buckets:""`
 	}
 
 	gotoprom.MustInit(&metrics, "testbooleans")
@@ -153,7 +153,7 @@ func Test_LabelsWithInts(t *testing.T) {
 	}
 
 	var metrics struct {
-		WithLabels func(labelsWithInts) prometheus.Histogram `name:"with_ints" help:"Parse ints as strings"`
+		WithLabels func(labelsWithInts) prometheus.Histogram `name:"with_ints" help:"Parse ints as strings" buckets:""`
 	}
 
 	gotoprom.MustInit(&metrics, "testints")
@@ -186,7 +186,7 @@ func Test_DefaultLabelValues(t *testing.T) {
 	}
 
 	var metrics struct {
-		WithLabels func(labelsWithEmptyValues) prometheus.Histogram `name:"with_labels" help:"Assign default values"`
+		WithLabels func(labelsWithEmptyValues) prometheus.Histogram `name:"with_labels" help:"Assign default values" buckets:"10,20,30"`
 	}
 	gotoprom.MustInit(&metrics, "testdefault")
 
@@ -202,7 +202,7 @@ func Test_DefaultLabelValues(t *testing.T) {
 
 func Test_HistogramWithUnsupportedBuckets(t *testing.T) {
 	var metrics struct {
-		Histogram func() prometheus.Histogram `name:"with_broken_buckets" help:"Wrong buckets" buckets:"0.005, +inf"`
+		Histogram func() prometheus.Histogram `name:"with_broken_buckets" help:"Wrong buckets" buckets:"0.005, whatever"`
 	}
 	err := gotoprom.Init(&metrics, "test")
 	assert.NotNil(t, err)

@@ -64,7 +64,7 @@ Define your metrics:
 ```go
 var metrics struct {
 	SomeCounter                      func() prometheus.Counter   `name:"some_counter" help:"some counter"`
-	SomeHistogram                    func() prometheus.Histogram `name:"some_histogram" help:"Some histogram with default buckets"`
+	SomeHistogram                    func() prometheus.Histogram `name:"some_histogram" help:"Some histogram with default prometheus buckets" buckets:""`
 	SomeHistogramWithSpecificBuckets func() prometheus.Histogram `name:"some_histogram_with_buckets" help:"Some histogram with custom buckets" buckets:".01,.05,.1"`
 	SomeGauge                        func() prometheus.Gauge     `name:"some_gauge" help:"Some gauge"`
 	SomeSummaryWithSpecificMaxAge    func() prometheus.Summary   `name:"some_summary_with_specific_max_age" help:"Some summary with custom max age" max_age:"20m"`
@@ -170,7 +170,7 @@ So you can later define it as:
 
 ```go
 var metrics struct {
-	DurationSeconds func() prometheusx.TimeHistogram `name:"duration_seconds" help:"Duration in seconds"`
+	DurationSeconds func() prometheusx.TimeHistogram `name:"duration_seconds" help:"Duration in seconds" buckets:".001,.005,.01,.025,.05,.1"`
 }
 
 func init() {
