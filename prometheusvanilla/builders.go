@@ -58,6 +58,9 @@ func BuildGauge(name, help, namespace string, labelNames []string, tag reflect.S
 
 // BuildHistogram builds a prometheus.Histogram
 // The function it returns returns a prometheus.Histogram type as an interface{}
+// It requires the buckets tag to be provided
+// If the buckets tag is explicitly empty, then the Histogram will be built with default prometheus buckets
+// which is prometheus.DefBuckets at the time this comment is written.
 func BuildHistogram(name, help, namespace string, labelNames []string, tag reflect.StructTag) (func(prometheus.Labels) interface{}, prometheus.Collector, error) {
 	buckets, err := bucketsFromTag(tag)
 	if err != nil {
@@ -81,6 +84,9 @@ func BuildHistogram(name, help, namespace string, labelNames []string, tag refle
 
 // BuildSummary builds a prometheus.Summary
 // The function it returns returns a prometheus.Summary type as an interface{}
+// It requires the objectives tag to be provided, and optionally the max_age tag
+// If the objectives tag is explicitly empty, then the Summary will be built with default prometheus objectives
+// which is no objectives at the time this comment is written.
 func BuildSummary(name, help, namespace string, labelNames []string, tag reflect.StructTag) (func(prometheus.Labels) interface{}, prometheus.Collector, error) {
 	maxAge, err := maxAgeFromTag(tag)
 	if err != nil {
