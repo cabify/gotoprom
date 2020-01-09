@@ -106,12 +106,18 @@ func BuildSummary(name, help, namespace string, labelNames []string, tag reflect
 func bucketsFromTag(tag reflect.StructTag) ([]float64, error) {
 	bucketsString, ok := tag.Lookup("buckets")
 	if !ok {
-		return DefaultBuckets(), nil
+		return nil, fmt.Errorf("buckets not specified")
 	}
+
+	if len(bucketsString) == 0 {
+		return nil, nil
+	}
+
 	bucketSlice := strings.Split(bucketsString, ",")
 	buckets := make([]float64, len(bucketSlice))
+
 	var err error
-	for i := 0; i < len(bucketSlice); i++ {
+	for i := range bucketSlice {
 		buckets[i], err = strconv.ParseFloat(bucketSlice[i], 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid bucket specified: %s", err)
@@ -119,11 +125,6 @@ func bucketsFromTag(tag reflect.StructTag) ([]float64, error) {
 	}
 
 	return buckets, nil
-}
-
-// DefaultBuckets provides a list of buckets you can use when you don't know what to use yet.
-func DefaultBuckets() []float64 {
-	return []float64{.05, .1, 0.25, .5, 1, 5, 10}
 }
 
 func maxAgeFromTag(tag reflect.StructTag) (time.Duration, error) {

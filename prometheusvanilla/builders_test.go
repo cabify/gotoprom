@@ -17,16 +17,21 @@ const (
 )
 
 var (
-	labels                                   = make(prometheus.Labels, 2)
-	keys                                     = make([]string, 0, len(labels))
-	defaultTag             reflect.StructTag = `name:"some_name" help:"some help for the metric"`
-	bucketsTag             reflect.StructTag = `name:"some_name" help:"some help for the metric" buckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
+	labels                       = make(prometheus.Labels, 2)
+	keys                         = make([]string, 0, len(labels))
+	defaultTag reflect.StructTag = `name:"some_name" help:"some help for the metric"`
+
+	bucketsTag          reflect.StructTag = `name:"some_name" help:"some help for the metric" buckets:"0.001,0.005,0.01,0.05,0.1,0.5,1,5,10"`
+	emptyBucketsTag     reflect.StructTag = `name:"some_name" help:"some help for the metric" buckets:""`
+	malformedBucketsTag reflect.StructTag = `name:"some_name" help:"some help for the metric" buckets:"fourtytwo"`
+
 	maxAgeTag              reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h"`
 	objectivesTag          reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:"0.55,0.95,0.98"`
 	objectivesMalformedTag reflect.StructTag = `name:"some_name" help:"some help for the metric" max_age:"1h" objectives:"notFloat"`
-	expectedBuckets                          = []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10}
-	expectedMaxAge                           = time.Hour
-	expectedObjectives                       = map[float64]float64{0.55: 0.045, 0.95: 0.005, 0.98: 0.002}
+
+	expectedBuckets    = []float64{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10}
+	expectedMaxAge     = time.Hour
+	expectedObjectives = map[float64]float64{0.55: 0.045, 0.95: 0.005, 0.98: 0.002}
 )
 
 func TestBuilders(t *testing.T) {
@@ -47,7 +52,7 @@ func TestBuilders(t *testing.T) {
 	})
 
 	t.Run("Test building a histogram", func(t *testing.T) {
-		f, c, err := BuildHistogram(name, help, nameSpace, keys, "")
+		f, c, err := BuildHistogram(name, help, nameSpace, keys, `buckets:""`)
 		assert.NoError(t, err)
 		assert.Implements(t, (*prometheus.Collector)(nil), c)
 		assert.Implements(t, (*prometheus.Histogram)(nil), f(labels))
@@ -78,10 +83,20 @@ func TestBuckets(t *testing.T) {
 		assert.ElementsMatch(t, expectedBuckets, buckets)
 	})
 
-	t.Run("Test it returns default buckets when none are found", func(t *testing.T) {
-		buckets, err := bucketsFromTag(defaultTag)
+	t.Run("Test empty string generates empty buckets slice", func(t *testing.T) {
+		buckets, err := bucketsFromTag(emptyBucketsTag)
 		assert.NoError(t, err)
-		assert.ElementsMatch(t, DefaultBuckets(), buckets)
+		assert.Len(t, buckets, 0)
+	})
+
+	t.Run("Test it returns error when buckets are malformed", func(t *testing.T) {
+		_, err := bucketsFromTag(malformedBucketsTag)
+		assert.Error(t, err)
+	})
+
+	t.Run("Test it returns error when none are found", func(t *testing.T) {
+		_, err := bucketsFromTag(defaultTag)
+		assert.Error(t, err)
 	})
 }
 
