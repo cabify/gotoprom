@@ -27,12 +27,12 @@ func AddBuilder(typ reflect.Type, registerer Builder) error {
 	return DefaultInitializer.AddBuilder(typ, registerer)
 }
 
-// MustInit initialises the metrics or panics.
+// MustInit initializes the metrics or panics.
 func MustInit(metrics interface{}, namespace string) {
 	DefaultInitializer.MustInit(metrics, namespace)
 }
 
-// Init initialises the metrics in the given namespace.
+// Init initializes the metrics in the given namespace.
 func Init(metrics interface{}, namespace string) error {
 	return DefaultInitializer.Init(metrics, namespace)
 }

@@ -1,4 +1,4 @@
-.PHONY: test benchmark help fmt install
+.PHONY: test help fmt report-coveralls benchmark lint
 
 help: ## Show the help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[36m%-20s\033[93m %s\n", $$1, $$2}'
@@ -6,20 +6,11 @@ help: ## Show the help text
 test: ## Run unit tests
 	@go test -coverprofile=coverage.out -covermode=atomic -race ./...
 
-benchmark: ## Run benchmarks
-	@go test -bench=. ./...
-
-check-fmt: ## Check file forma
-	@GOIMP=$$(for f in $$(find . -type f -name "*.go" ! -path "./.cache/*" ! -path "./vendor/*" ! -name "bindata.go") ; do \
-		goimports -l $$f ; \
-	done) && echo $$GOIMP && test -z "$$GOIMP"
+lint: # Run linters using golangci-lint 
+	@golangci-lint run
 
 fmt: ## Format files
 	@goimports -w $$(find . -name "*.go" -not -path "./vendor/*")
 
-install: ## Installs dependencies
-	GOPATH=$$GOPATH && go get -u -v \
-		golang.org/x/tools/cmd/goimports
-
-report-coveralls: ## Reports generated coverage profile to coveralls.io. Intended to be used only from travis
-	go get github.com/mattn/goveralls && goveralls -coverprofile=coverage.out -service=travis-ci
+benchmark: ## Run benchmarks
+	@go test -run=NONE -benchmem -benchtime=5s -bench=. ./...	
