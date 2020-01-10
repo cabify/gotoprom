@@ -12,7 +12,7 @@ install:
 
 script:
   - make test
-  - golangci-lint run
+  - make lint 
 
 after_success:
   - go get github.com/mattn/goveralls
