@@ -179,6 +179,43 @@ func Test_LabelsWithInts(t *testing.T) {
 	}, reportedLabels)
 }
 
+func Test_LabelsWithUints(t *testing.T) {
+	type labelsWithUints struct {
+		StringValue string `label:"string_value"`
+		UintValue   uint   `label:"uint_value"`
+		UintValue8  uint8  `label:"uint8_value"`
+		UintValue16 uint16 `label:"uint16_value"`
+		UintValue32 uint32 `label:"uint32_value"`
+		UintValue64 uint64 `label:"uint64_value"`
+	}
+
+	var metrics struct {
+		WithLabels func(labelsWithUints) prometheus.Histogram `name:"with_uints" help:"Parse uints as strings" buckets:""`
+	}
+
+	gotoprom.MustInit(&metrics, "testuints")
+
+	metrics.WithLabels(labelsWithUints{
+		StringValue: "string",
+		UintValue:   10,
+		UintValue8:  20,
+		UintValue16: 30,
+		UintValue32: 40,
+		UintValue64: 50,
+	}).Observe(288.0)
+
+	reportedLabels := retrieveReportedLabels(t, "testuints_with_uints")
+
+	assert.Equal(t, map[string]string{
+		"string_value": "string",
+		"uint_value":   "10",
+		"uint8_value":  "20",
+		"uint16_value": "30",
+		"uint32_value": "40",
+		"uint64_value": "50",
+	}, reportedLabels)
+}
+
 func Test_DefaultLabelValues(t *testing.T) {
 	type labelsWithEmptyValues struct {
 		StringWithEmpty    string `label:"string_with_default" default:"none"`
