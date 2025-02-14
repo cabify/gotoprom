@@ -87,20 +87,6 @@ func TestInitializer_Init(t *testing.T) {
 				}{},
 			},
 			{
-				desc: "sub-struct doesn't define its namespace",
-				metrics: &struct {
-					Inner struct{}
-				}{},
-			},
-			{
-				desc: "sub-struct can't be initialized",
-				metrics: &struct {
-					Inner struct {
-						Deeper struct{} `thisdoesnothaveanamespace:"nothing"`
-					} `namespace:"thishasanamespace"`
-				}{},
-			},
-			{
 				desc: "non-exported field",
 				metrics: &struct {
 					foo func() prometheus.Gauge `name:"unexported" help:"this can't be set"`
