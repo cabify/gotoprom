@@ -82,7 +82,13 @@ func (in initializer) Init(metrics interface{}, namespace string) error {
 		return fmt.Errorf("expected pointer to metrics struct, got %q", metricsPtr.Kind())
 	}
 
-	return in.initMetrics(metricsPtr.Elem(), namespace)
+	var namespaces []string
+
+	if namespace != "" {
+		namespaces = append(namespaces, namespace)
+	}
+
+	return in.initMetrics(metricsPtr.Elem(), namespaces...)
 }
 
 func (in initializer) initMetrics(group reflect.Value, namespaces ...string) error {
@@ -100,8 +106,12 @@ func (in initializer) initMetrics(group reflect.Value, namespaces ...string) err
 			}
 		} else if fieldType.Type.Kind() == reflect.Struct {
 			namespace, ok := fieldType.Tag.Lookup("namespace")
-			if !ok {
-				return fmt.Errorf("field %s does not have the namespace tag defined", fieldType.Name)
+			if !ok || namespace == "" {
+				if err := in.initMetrics(field, namespaces...); err != nil {
+					return err
+				}
+
+				continue
 			}
 			if err := in.initMetrics(field, append(namespaces, namespace)...); err != nil {
 				return err
@@ -134,7 +144,7 @@ func (in initializer) initMetricFunc(field reflect.Value, structField reflect.St
 	// Validate the input of the metric function, it should have zero or one arguments
 	// If it has one argument, it should be a struct correctly tagged with label names
 	// If there are no input arguments, this metric will not have labels registered
-	var labelIndexes = make(map[label][]int)
+	labelIndexes := make(map[label][]int)
 	if fieldType.NumIn() > 1 {
 		return fmt.Errorf("field %s: expected 1 in arg, got %d", structField.Name, fieldType.NumIn())
 	} else if fieldType.NumIn() == 1 {
